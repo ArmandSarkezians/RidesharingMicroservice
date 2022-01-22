@@ -1,0 +1,73 @@
+version: "3.8"
+services:
+  apigateway:
+    container_name: apigateway
+    build:
+      context: ./ApiGateway
+      dockerfile: Dockerfile
+    ports:
+      - 8004:8000
+    environment:
+      - NEO4J_ADDR=neo4j
+      - MONGO_ADDR=mongodb
+      - SQL_ADDR=postgres
+  locationmicroservice:
+    container_name: locationmicroservice
+    build: 
+        context: ./locationmicroservice
+        dockerfile: Dockerfile
+    depends_on:
+      - neo4j
+    ports:
+      - "8000:8000"
+    environment:
+      - NEO4J_ADDR=neo4j
+  usermicroservice:
+    container_name: usermicroservice
+    build: 
+        context: ./UserMicroservice
+        dockerfile: Dockerfile
+    depends_on:
+      - postgres
+    ports:
+      - "8001:8000"
+    environment:
+      - POSTGRES_ADDR=postgres
+  tripinfomicroservice:
+    container_name: tripinfomicroservice
+    build: 
+        context: ./TripinfoMicroservice
+        dockerfile: Dockerfile
+    depends_on:
+      - mongodb
+    ports:
+      - "8002:8000"
+    environment:
+      - MONGODB_ADDR=mongodb
+  mongodb:
+    container_name: mongodb
+    image: mongo
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: 123456
+      MONGO_INITDB_DATABASE: trip
+    ports:
+      - "27017:27017"
+  postgres:
+    container_name: postgres
+    build:
+      context: ./UserMicroservice/PostgresFiles
+      dockerfile: Dockerfile
+    environment:
+      POSTGRES_PASSWORD: 123456
+      POSTGRES_USER: root
+    ports:
+      - "5432:5432"
+  neo4j:
+    container_name: neo4j
+    image: neo4j:latest
+    #platform: linux/amd64
+    environment:
+      - NEO4J_AUTH=neo4j/123456
+    ports:
+      - '7687:7687'
